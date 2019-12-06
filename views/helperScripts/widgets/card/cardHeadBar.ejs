@@ -1,0 +1,35 @@
+<div class="card-header">
+    <div class="row">
+        <div class='col-9'>
+            <div class="row searchSettingsRow">
+                <div class="dropdown">
+                    <button hidden class="btn btn-secondary dropdown-toggle btnMainPage categoryLabel" type="button"
+                        id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Produt
+                        Cateogry</button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="#" onclick='$(".categoryLabel")[0].innerHTML="All"'>All</a>
+                        <a class="dropdown-item" href="#"
+                            onclick='$(".categoryLabel")[0].innerHTML="Gravity"'>Gravity</a>
+                        <a class="dropdown-item" href="#"
+                            onclick='$(".categoryLabel")[0].innerHTML="Arduino Boards"'>Arduino Boards</a>
+                        <a class="dropdown-item" href="#" onclick='$(".categoryLabel")[0].innerHTML="IoT"'>IoT</a>
+                    </div>
+                </div>
+                <input class="datePicker" type="text" id="startdatePicker" placeholder="Start Date"
+                    onfocus="this.placeholder = ''">
+                <input class="datePicker" type="text" id="enddatePicker" placeholder="End Date"
+                    onfocus="this.placeholder = ''">
+            </div>
+        </div>
+        <div class='col-3'>
+            <button class="btn btn-primary btnMainPage" style="float: right;" onclick="searchPressed();"><i
+                    class="fa fa-search"></i></button>
+        </div>
+    </div>
+    <div class="row searchKeywordRow">
+        <div class='col-12' style="padding-left:0px">
+            <input class="keyWordsSearchBox" onkeydown="if (event.keyCode == 13) { searchPressed(); return false; }"
+                type="text" placeholder="Keywords" onfocus="this.placeholder = ''">
+        </div>
+    </div>
+</div>

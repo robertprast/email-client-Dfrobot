@@ -1,0 +1,97 @@
+<head>
+    <% include ./helperScripts/goodscripts.ejs %>
+    <% include ./helperScripts/mainClientJS.ejs %>
+</head>
+
+<!--#eb9534; ORANGE  -->
+
+<body style="background-color:rgba(255, 136, 0, 0.788)">
+    <% include ./helperScripts/navbar.ejs %>
+
+    
+    <div class="panel panel-primary" id="result_panel">
+        <div class="container" style="margin-top: 10px;">
+            <div id="howToUse" style="display: none;padding: 15px;">
+                <p>
+                    The Top 10 Tab will return the Prodcuts with the most number of email threads from
+                    customers. A
+                    email
+                    thread represents when a customer emails techsupport for the first time or starts a new
+                    email
+                    subject conversation. Replies to the same email subject are not counted. You can refine the
+                    search
+                    to only include a certain date range. After the charts are made, you can click on the
+                    invidual
+                    bars
+                    to bring up a new page that shows all the threads for that specific product. This
+                    information
+                    will
+                    be a list where each item is the the customer and then the subject of the email. You can
+                    then
+                    further click on these threads to see all replies from that customer, essentially seeing the
+                    entire
+                    conversation the customer sent.
+                </p>
+                <p>
+                    The Search tab lets you search specific keywords in the entire email list from customers.
+                    For
+                    example, you can search for "CAD" to see all the emails of customers asking us about CAD
+                    models
+                    for
+                    our products. You can then further refine this search for "CAD DFR0434" to get all emails
+                    that
+                    include both CAD and DFR0434 in their contents. The search will find emails that have all
+                    the
+                    keywords contained in them . For now, it can NOT search for multple seperate keywords, like
+                    finding
+                    all emails relating to either DFR0434 or DFR0550. The search is AND inclusive only.
+                </p>
+            </div>
+            <div class="row" style="background-color: transparent;">
+                <div class='col-12'>
+                    <a class="button mainTab parallelogram" href="#" onclick="tabSelected('tab1')" id="tab1">
+                        <span class="skew-fix">Top 10</span> </a>
+                    <a class="button mainTab parallelogram" href="#" onclick="tabSelected('tab2')" id="tab2">
+                        <span class="skew-fix">Search</span> </a>
+
+                </div>
+            </div>
+            <!-- </div> -->
+        </div>
+        <% include ./helperScripts/widgets/card/card.ejs %>
+
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button onclick="goBackToMainBody()" type="button" class="close" data-dismiss="modal"
+                        aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h4 style="text-decoration: underline;">Customer Emails And Subjects</h4>
+                    <p>Click on the tab to view the entire conversation with the customer. Each tab represents when a
+                        customer started a new email thread with us and is represented as one problem.</p>
+                    <ul class="list-group modalDataList">
+                    </ul>
+                </div>
+                <div class="modal-body2" hidden>
+                    <div style="margin: 5px;">
+                        <button onclick="goBackToMainBody()" class="btn btn-primary btnMainPage"><i
+                                class="fa fa-arrow-left"></i> Go Back!</button>
+                    </div>
+                    <ul class="list-group modalDataListForConvo">
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="goBackToMainBody()" type="button" class="btn btn-secondary"
+                        data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

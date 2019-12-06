@@ -1,0 +1,61 @@
+<html>
+
+<head>
+    <% include ./helperScripts/goodscripts.ejs %>
+
+    <script>
+        async function getAllData() {
+            var action = $("#apiForm")[0].action.value;
+            console.log($("#apiForm")[0].action.value)
+            const url = 'http://localhost:8081/api';
+            const data = { apiKey: "dfrobot_secret_key_12215647878964121487", action: action };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const json = await response.json();
+                console.log(JSON.stringify(json.msg, null, 2));
+                // console.log($("#apiResult"));
+                $("#apiResult").empty();
+                $("#apiResult").hide();
+                $("#apiResult").append("<pre><code>" + JSON.stringify(json.msg, null, 2) + "</pre></code>")
+                $("#apiResult").show("slow")
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</head>
+
+
+
+<body>
+    <div class="container">
+
+        <div class="row">
+            <div class="col-">
+
+                <form id="apiForm" onsubmit="getAllData();return false;" action="#">
+                    <input type="radio" style="height:25px;width:25px" name="action" value="getAllVal">get all value<br>
+                    <input type="radio" style="height:25px;width:25px" name="action" value="turnOffAll">turn off all<br>
+                    <input type="radio" style="height:25px;width:25px" name="action" value="turnOnAll">turn on all<br>
+                    <input type="hidden" name="token" value="dfrobot_secret_key_12215647878964121487">
+                    <input type="submit" style="width:125px" value="Submit">
+
+                </form>
+                <button style="width:125px" onclick='$("#apiResult").hide("slow", ()=>{$("#apiResult").empty()});'> Clear
+                    Results </button>
+            </div>
+            <div class="col">
+                <div id="apiResult"></div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

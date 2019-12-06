@@ -1,0 +1,448 @@
+<script type="text/javascript" charset="utf-8">
+    //Tab Globals
+    const unselectedTabColor = "rgba(255, 255, 255, 0.555)";
+    const selectedTabColor = "rgba(255, 255, 255, 0.95)"
+    var currentTab = "tab1"
+    //Chart Globals
+    var myChart;
+    var myChart2;
+    var chartConfig;
+    var chartConfig2;
+    var ctx
+    var ctx2;
+    const chartBackgroundColors = [
+        'rgba(255, 99, 132, 0.2)',
+        'rgba(54, 162, 235, 0.2)',
+        'rgba(255, 206, 86, 0.2)',
+        'rgba(75, 192, 192, 0.2)',
+        'rgba(153, 102, 255, 0.2)',
+        'rgba(255, 99, 132, 0.2)',
+        'rgba(54, 162, 235, 0.2)',
+        'rgba(255, 206, 86, 0.2)',
+        'rgba(75, 192, 192, 0.2)',
+        'rgba(153, 102, 255, 0.2)',
+    ]
+    const chartBorderColors = [
+        'rgba(255, 99, 132, 1)',
+        'rgba(54, 162, 235, 1)',
+        'rgba(255, 206, 86, 1)',
+        'rgba(75, 192, 192, 1)',
+        'rgba(153, 102, 255, 1)',
+        'rgba(255, 99, 132, 1)',
+        'rgba(54, 162, 235, 1)',
+        'rgba(255, 206, 86, 1)',
+        'rgba(75, 192, 192, 1)',
+        'rgba(153, 102, 255, 1)',
+    ]
+
+    $(document).ready(function () {
+        $('#startdatePicker').datepicker();
+        $('#enddatePicker').datepicker();
+        $(`.searchKeywordRow`).hide();
+        $(`#tab1`).css("background-color", selectedTabColor)
+    });
+
+
+    async function removeAllDataNodes() {
+        $(".dataList").empty("slow")
+    }
+
+    function tabSelected(tabID) {
+        removeAllDataNodes();
+        $(`#${tabID}`).css("background-color", selectedTabColor)
+        if (tabID === "tab1") {
+            $(`.searchKeywordRow`).hide();
+            $(`#tab2`).css("background-color", unselectedTabColor)
+        }
+        else {
+            $(".chartDiv").remove()
+            $(`.searchKeywordRow`).show();
+            $(`#tab1`).css("background-color", unselectedTabColor)
+        }
+        if (!(tabID === currentTab)) {
+            $(".card").hide(0)
+            $(".card").show("slow");
+
+        }
+        currentTab = tabID
+    }
+
+
+    async function changeModalToConvo(id) {
+        // console.log(id)
+        $(".modal-body").hide()
+
+
+        try {
+
+            let response2 = await fetch('/api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body: JSON.stringify({
+                    action: "getConvoThread",
+                    convoID: id
+                })
+            })
+
+
+            let result2 = await response2.json()
+            // console.log(result2)
+            var htmlOutline = `<button  type="button" disabled
+                                                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" >
+                                                        <div class="container">
+                                                            <div class="row">
+                                                                <div class='col-12'>
+                                                                    <!-- <div class="row">   <div class='col'> <p>Conversation ID: CONVOID </p></div>  </div>  -->
+                                                                    <div class="row">
+                                                                        <div class='col-9'>
+                                                                            <p>From: FROM </p>
+                                                                        </div>
+                                                                        <div class='col-3'>
+                                                                            <p> DATE </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class='col-10'>
+                                                                            <p >Subject: SUBJECT </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class='col-12'>
+                                                                            <p >BODY </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                `
+
+            result2.forEach(element => {
+                element.receivedDateTime = element.recvdDate.replace("T", " ").replace("Z", "")
+                $(".modalDataListForConvo").append(htmlOutline.replace("BODY", element.body).replace("FROM", element.from.emailAddress.address).replace("CONVOID", element.conversationId).replace("DATE", element.receivedDateTime).replace("SUBJECT", element.subject))
+            });
+            $(".modal-body2").removeAttr("hidden")
+            $(".modal-body2").show()
+        }
+        catch (err) {
+            console.log(err)
+        }
+    }
+    function goBackToMainBody() {
+
+        $(".modalDataListForConvo").empty();
+        $(".modal-body2").hide();
+        $(".modal-body").show();
+    }
+    async function searchAPI(searchParams) {
+        $(".chartDiv").remove()
+        console.log(searchParams)
+        const spinner = document.getElementById("spinner");
+        spinner.removeAttribute('hidden');
+        // console.log(spinner)
+        removeAllDataNodes()
+        //GET DATA FROM SERVER
+        try {
+            let response = await fetch('/api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body: JSON.stringify(searchParams)
+            })
+
+            let result = await response.json()
+            // console.log(result)
+
+            if (result === []) {
+                var htmlOutline = `<button disabled type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <div class="container">
+                <div class="row">
+                    <h3> No Results </h3>
+                </div>
+            </div>
+            </button>`
+                $(".dataList").append(htmlOutline)
+            }
+            if (currentTab === "tab2") {
+
+                var htmlOutline = `<button disabled type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <div class="container">
+                <div class="row">
+                    <div class='col-2'> <p> KEYWORD SUMMARY </p></div>
+                    <div class='col-10'>
+                        <div class="row"> <div class='col-6'> <p> FROM </p></div> <div class='col-3'> <p> DATE </p></div>    </div>
+                        <div class="row">   <div class='col'> <p> SUBJECT </p></div>  </div>
+                        <div class="row">   <div class='col'> <p> BODY </p></div>  </div>
+                    </div>
+                </div>
+            </div>
+            </button>
+            `
+
+                result.forEach(element => {
+                    element.receivedDateTime = element.recvdDate.replace("T", " ").replace("Z", "")
+                    $(".dataList").append(htmlOutline.replace("FROM", element.from.emailAddress.address).replace("DATE", element.receivedDateTime).replace("BODY", element.body).replace("SUBJECT", element.subject))
+                });
+            }
+            else {
+                $(".chartDiv").remove()
+
+                var htmlOutline = `
+            <div class="chartDiv">
+                <div id="chartCarouselHolder" class="carousel slide" data-ride="carousel" data-interval="false">
+                    <div class="carousel-inner">
+
+                    </div>
+                </div> 
+                <div class="d-flex justify-content-center" style="margin-top:10px">
+                    <button class="btn btn-dark" style="margin:5px" onclick="$('.carousel').carousel(0)">Pie Graph</i></button>     
+                    <button class="btn btn-dark"  style="margin:5px" onclick="$('.carousel').carousel(1)">Bar Graph</i></button>   
+                </div>
+            </div>
+            `
+                $(".panel-body").append(htmlOutline)
+                $(".carousel-inner").append(`<div class="canvasHolder carousel-item active">
+                    <canvas id="myChartCanvas"></canvas>
+                    </div>
+                    <div class="canvasHolder carousel-item">
+                    <canvas id="myChartCanvas2"></canvas>
+                </div>`)
+                ctx = document.getElementById('myChartCanvas').getContext('2d');
+                ctx2 = document.getElementById('myChartCanvas2').getContext('2d');
+
+                chartConfig = {
+                    type: 'doughnut',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: "Dataset 1",
+                            data: [],
+                            backgroundColor: chartBackgroundColors,
+                            borderColor: chartBorderColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Customers Email Threads By Sku'
+                        },
+                        animation: {
+                            animateScale: true,
+                            animateRotate: true
+                        },
+                        circumference: Math.PI,
+                        rotation: -Math.PI,
+                        onClick: async function (c, i) {
+                            try {
+
+
+                                e = i[0];
+                                // console.log(e._index)
+                                var x_value = this.data.labels[e._index];
+                                var y_value = this.data.datasets[0].data[e._index];
+                                // console.log(x_value);
+                                // console.log(y_value);
+                                if (e._index < 0) {
+                                    return
+                                }
+                                const spinner = document.getElementById("spinner");
+                                spinner.removeAttribute('hidden');
+
+
+                                // console.log(`Label: ${x_value} , value: ${y_value}`)
+
+                                $(".modal-title").remove()
+                                $(".modalDataList").empty()
+                                $(".modal-header").prepend('<h2 class="modal-title">Product: TITLE</h2>'.replace("TITLE", x_value))
+                                try {
+                                    const idsToSend = []
+                                    result[e._index].conversationIDs.forEach(element => {
+                                        idsToSend.push(element)
+                                    })
+                                    let response2 = await fetch('/api', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json;charset=utf-8'
+                                        },
+                                        body: JSON.stringify({
+                                            action: "getConvoBasicData",
+                                            convoIDS: idsToSend
+                                        })
+                                    })
+
+
+                                    let result2 = await response2.json()
+                                    // console.log(result2)
+                                    var htmlOutline = `<button  type="button"
+                                                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" onclick=changeModalToConvo("CONVOID")>
+                                                        <div class="container">
+                                                            <div class="row">
+                                                                <div class='col-12'>
+                                                                    <!-- <div class="row">   <div class='col'> <p>Conversation ID: CONVOID </p></div>  </div>  -->
+                                                                    <div class="row">
+                                                                        <div class='col-9'>
+                                                                            <p>From: FROM </p>
+                                                                        </div>
+                                                                        <div class='col-3'>
+                                                                            <p> DATE </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class='col-10'>
+                                                                            <p >Subject: SUBJECT </p>
+                                                                        </div>
+                                                                       
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                `
+
+                                    Object.keys(result2).forEach(item => {
+                                        var element = result2[item][0];
+                                        element.receivedDateTime = element.recvdDate.replace("T", " ").replace("Z", "")
+                                        $(".modalDataList").append(htmlOutline.replace("FROM", element.from.emailAddress.address).replace("CONVOID", element.conversationId).replace("DATE", element.receivedDateTime).replace("SUBJECT", element.subject))
+                                    });
+                                }
+                                catch (err) {
+                                    console.log(err)
+                                }
+                                spinner.setAttribute('hidden', '');
+                                $('.modal').modal('show');
+                            }
+                            catch (err) {
+                                // console.log(`error in chartclick ${err}`)
+                            }
+                        }
+                    }
+                }
+                myChart = new Chart(ctx, chartConfig);
+                result.forEach((element, index) => {
+                    // console.log(index % chartBackgroundColors.length)
+                    chartConfig.data.labels.push(element.id);
+                    //chartConfig.data.datasets[0].label.push(element.id);
+                    chartConfig.data.datasets[0].data.push(element.conversationIDs.length)
+                    chartConfig.data.datasets[0].backgroundColor.push(chartBackgroundColors[index % chartBackgroundColors.length])
+                    chartConfig.data.datasets[0].borderColor.push(chartBorderColors[index % chartBorderColors.length])
+                    myChart.update()
+                });
+
+
+
+                // console.log(chartConfig)
+                chartConfig2 = $.extend({}, chartConfig);
+                // console.log(chartConfig)
+                chartConfig2.type = "bar"
+                // chartConfig2.options.title = {}
+                chartConfig2.options.legend = { display: false }
+                // chartConfig2.data.datasets[0].label
+                myChart2 = new Chart(ctx2, chartConfig2)
+                myChart2.update()
+
+                $('.carousel').carousel(1)
+
+            }
+            // else {
+            //     var htmlOutline = `<button disabled type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            //     DATA   
+            //     <p style="padding-left:10px"> NEED TO DO KEYWORD ANAYLSIS HERE </p>
+            //     <span class="badge badge-primary badge-pill" style="padding:10px">problemNumber</span></button>`
+            //     console.log(result[0])
+            //     result.forEach(element => {
+            //         $(".dataList").append(htmlOutline.replace("DATA", element["id"]).replace("problemNumber", element.conversationIDs.length))
+            //     });
+            // }
+            spinner.setAttribute('hidden', '');
+        }
+        catch (err) {
+            spinner.setAttribute('hidden', '');
+        }
+    }
+
+    function removeAlertNice(alertClassName) {
+        setTimeout(function () {
+            $('.' + alertClassName).fadeOut("slow")
+            $('.' + alertClassName).remove();
+        }, 5000);
+    }
+
+    function removeAlertFast() {
+        $('.alert-danger').remove();
+    }
+
+    function addHeaderErrorAlert(alertMsg) {
+        $('.card-header').append(`<div class="alert alert-danger" style="display: none;text-align:center;padding:0px;margin:0px;margin-top:2px"  >${alertMsg}</div>`)
+        $('.alert-danger').fadeIn("slow")
+    }
+
+    function searchPressed() {
+        $('.panel-title').show(300)
+        var searchParams = { action: "getTop10" }
+        const startDate = $('#startdatePicker')[0].value === "" ? false : $('#startdatePicker')[0].value;
+        const endDate = $('#enddatePicker')[0].value === "" ? false : $('#enddatePicker')[0].value;
+
+        //TO-DO CATEGORY IMPLEMENTATION
+        const category = $(".categoryLabel")[0].innerHTML.indexOf("Category") == -1 ? "all" : $(".categoryLabel")[0].innerHTML;
+
+        //TAB 2 change action and add keywords
+        if (currentTab === "tab2") {
+            searchParams = { action: "findEmails" }
+            var tmp = $(".keyWordsSearchBox")[0].value
+            tmp[0] !== "" ? searchParams.keywords = tmp : null;
+        }
+
+        if (startDate === false || endDate === false) {
+            if (startDate !== false && endDate === false) {
+                addHeaderErrorAlert("Please add an end date!")
+                // console.log("add a end date")
+                removeAlertNice('alert-danger');
+                return
+            }
+            else if (startDate === false && endDate !== false) {
+                addHeaderErrorAlert("Please add an start date!")
+                // console.log("add a end date")
+                removeAlertNice('alert-danger');
+                return
+            }
+
+            //SEARCH HAPPENS BELOW HERE
+
+            //remove all alerts now
+            removeAlertFast()
+
+            if (category === "all") {
+                // SEARCH ALL HERE, no dates
+                searchParams.category = "ALL";
+                searchParams.hasDates = false;
+                searchAPI(searchParams);
+                // console.log("search all")
+            }
+            else {
+                //search specific cateogry here
+                searchParams.category = category;
+                searchParams.hasDates = false;
+                searchAPI(searchParams);
+                // console.log(`search category: ${category} no dates`);
+            }
+        }
+        else {
+            //also remove all alerts, user is faster than timeout
+            removeAlertFast()
+            searchParams.category = category;
+            searchParams.hasDates = true;
+            searchParams.startDate = startDate;
+            searchParams.endDate = endDate;
+            searchAPI(searchParams);
+        }
+    }
+</script>
